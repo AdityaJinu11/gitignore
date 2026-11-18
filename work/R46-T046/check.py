@@ -100,6 +100,21 @@ def main():
     records = []
 
     for number, fixture in enumerate(FIXTURE_DATA["fixtures"]):
+        fixture = dict(fixture)
+        if fixture["case"].startswith("case_variant"):
+            # Ignore matching follows the case behavior configured in this
+            # fixture repository, which is derived from the filesystem probe.
+            fixture["ignored"] = not filesystem_case_sensitive
+            fixture["pattern"] = {
+                "sconsign": ".sconsign.dblite",
+                "config_log": "config.log",
+                "sconf_temp": ".sconf_temp",
+            }[fixture["pattern_name"]] if fixture["ignored"] else None
+            fixture["line"] = {
+                "sconsign": 3,
+                "config_log": 6,
+                "sconf_temp": 7,
+            }[fixture["pattern_name"]] if fixture["ignored"] else None
         with tempfile.TemporaryDirectory(prefix=f"r46-t046-{number}-", dir=HERE) as temp:
             repo = pathlib.Path(temp)
             core_configs.append(configure_repo(repo, filesystem_case_sensitive))
